@@ -23,6 +23,7 @@
 
     <div class="card-body p-0">
         {{-- Info --}}
+        {{-- Info -- v1}}
         <div class="row g-0 border-bottom p-3">
             <div class="col-6">
                 <div class="text-muted small">Room</div>
