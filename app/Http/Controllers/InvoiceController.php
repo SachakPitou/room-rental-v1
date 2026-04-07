@@ -24,6 +24,9 @@ class InvoiceController extends Controller
 
     public function store(Request $request)
     {
+        $room = Room::findOrFail($request->room_id);
+
+        // Build validation rules dynamically
         $rules = [
             'room_id'       => 'required|exists:rooms,id',
             'tenant_id'     => 'required|exists:tenants,id',
@@ -34,12 +37,10 @@ class InvoiceController extends Controller
             'exchange_rate' => 'required|numeric|min:1',
         ];
 
-        $room = Room::findOrFail($request->room_id);
-
-        // Only validate water meter if metered mode
+        // Only require meter readings if metered mode
         if ($room->isFixedWater()) {
-            $rules['prev_water'] = 'nullable';
-            $rules['curr_water'] = 'nullable';
+            $rules['prev_water'] = 'nullable|numeric|min:0';
+            $rules['curr_water'] = 'nullable|numeric|min:0';
         } else {
             $rules['prev_water'] = 'required|numeric|min:0';
             $rules['curr_water'] = 'required|numeric|gte:prev_water';
@@ -52,51 +53,52 @@ class InvoiceController extends Controller
         $electricFeeRiel = $electricUsed * $room->electric_rate;
         $electricFeeUsd  = $electricFeeRiel / $exchangeRate;
 
-        // Water calculation: fixed or metered
+        // Water: fixed vs metered
         if ($room->isFixedWater()) {
-            $waterUsed      = 0;
-            $waterFeeRiel   = 0;
-            $waterFeeUsd    = $room->water_fixed_fee; // flat USD fee
-            $prevWater      = null;
-            $currWater      = null;
+            $prevWater    = null;
+            $currWater    = null;
+            $waterUsed    = 0;
+            $waterFeeRiel = 0;
+            $waterFeeUsd  = $room->water_fixed_fee;
         } else {
-            $waterUsed      = $request->curr_water - $request->prev_water;
-            $waterFeeRiel   = $waterUsed * $room->water_rate;
-            $waterFeeUsd    = $waterFeeRiel / $exchangeRate;
-            $prevWater      = $request->prev_water;
-            $currWater      = $request->curr_water;
+            $prevWater    = $request->prev_water;
+            $currWater    = $request->curr_water;
+            $waterUsed    = $currWater - $prevWater;
+            $waterFeeRiel = $waterUsed * $room->water_rate;
+            $waterFeeUsd  = $waterFeeRiel / $exchangeRate;
         }
 
         $extraFee = $request->extra_fee ?? 0;
         $total    = $room->monthly_fee + $waterFeeUsd + $electricFeeUsd + $extraFee;
 
         Invoice::create([
-            'room_id'           => $room->id,
-            'tenant_id'         => $request->tenant_id,
-            'month'             => $request->month,
-            'monthly_fee'       => $room->monthly_fee,
-            'prev_water'        => $prevWater,
-            'curr_water'        => $currWater,
-            'water_rate'        => $room->water_rate,
-            'water_used'        => $waterUsed,
-            'water_fee_riel'    => $waterFeeRiel,
-            'water_fee_usd'     => round($waterFeeUsd, 2),
-            'water_mode'        => $room->water_mode,
-            'water_fixed_fee'   => $room->water_fixed_fee,
-            'prev_electric'     => $request->prev_electric,
-            'curr_electric'     => $request->curr_electric,
-            'electric_rate'     => $room->electric_rate,
-            'electric_used'     => $electricUsed,
-            'electric_fee_riel' => $electricFeeRiel,
-            'electric_fee_usd'  => round($electricFeeUsd, 2),
-            'extra_fee'         => $extraFee,
-            'extra_fee_note'    => $request->extra_fee_note,
-            'exchange_rate'     => $exchangeRate,
-            'total_usd'         => round($total, 2),
-            'status'            => 'unpaid',
+            'room_id'            => $room->id,
+            'tenant_id'          => $request->tenant_id,
+            'month'              => $request->month,
+            'monthly_fee'        => $room->monthly_fee,
+            'prev_water'         => $prevWater,
+            'curr_water'         => $currWater,
+            'water_rate'         => $room->water_rate,
+            'water_used'         => $waterUsed,
+            'water_fee_riel'     => $waterFeeRiel,
+            'water_fee_usd'      => round($waterFeeUsd, 2),
+            'water_mode'         => $room->water_mode,
+            'water_fixed_fee'    => $room->water_fixed_fee,
+            'prev_electric'      => $request->prev_electric,
+            'curr_electric'      => $request->curr_electric,
+            'electric_rate'      => $room->electric_rate,
+            'electric_used'      => $electricUsed,
+            'electric_fee_riel'  => $electricFeeRiel,
+            'electric_fee_usd'   => round($electricFeeUsd, 2),
+            'extra_fee'          => $extraFee,
+            'extra_fee_note'     => $request->extra_fee_note,
+            'exchange_rate'      => $exchangeRate,
+            'total_usd'          => round($total, 2),
+            'status'             => 'unpaid',
         ]);
 
-        return redirect()->route('invoices.index')->with('success', 'Invoice created!');
+        return redirect()->route('invoices.index')
+                        ->with('success', 'Invoice created successfully!');
     }
 
     public function show(Invoice $invoice)
@@ -108,5 +110,10 @@ class InvoiceController extends Controller
     {
         $invoice->update(['status' => 'paid', 'paid_date' => now()]);
         return back()->with('success', 'Invoice marked as paid! ✅');
+    }
+    public function print(Invoice $invoice)
+    {
+        $invoice->load('room', 'tenant');
+        return view('invoices.print', compact('invoice'));
     }
 }

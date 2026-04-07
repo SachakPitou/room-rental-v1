@@ -1,39 +1,120 @@
 @extends('layouts.app')
-@section('title', 'Room')
+@section('title','Rooms')
 @section('content')
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="fw-bold mb-0"><i class="bi bi-house-door me-2"></i>Room Settings</h4>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="fw-bold mb-0"><i class="bi bi-house-door me-2"></i>Rooms</h5>
+    <a href="{{ route('rooms.create') }}" class="btn btn-primary btn-sm px-3">
+        <i class="bi bi-plus-lg me-1"></i>Add Room
+    </a>
 </div>
 
-@foreach($rooms as $room)
-<div class="card mb-4">
+@if(session('error'))
+<div class="alert alert-danger alert-dismissible fade show py-2">
+    {{ session('error') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+@endif
+
+@forelse($rooms as $room)
+<div class="card mb-3">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <span>{{ $room->name }}</span>
+        <span class="fw-semibold">{{ $room->name }}</span>
         <span class="badge bg-{{ $room->status === 'occupied' ? 'success' : 'secondary' }}">
             {{ ucfirst($room->status) }}
         </span>
     </div>
     <div class="card-body">
-        <div class="row g-3 mb-3">
-            <div class="col-md-4">
-                <div class="text-muted small">Monthly Rent</div>
-                <div class="fs-5 fw-bold text-primary">${{ number_format($room->monthly_fee, 2) }}</div>
+
+        {{-- Rates --}}
+        <div class="row g-2 text-center mb-3">
+            <div class="col-4">
+                <div class="text-muted" style="font-size:.7rem">RENT</div>
+                <div class="fw-bold text-primary">${{ number_format($room->monthly_fee,2) }}</div>
             </div>
-            <div class="col-md-4">
-                <div class="text-muted small">Water Rate</div>
-                <div class="fs-5 fw-bold text-info">{{ number_format($room->water_rate) }} ៛/m³</div>
+            <div class="col-4">
+                <div class="text-muted" style="font-size:.7rem">WATER</div>
+                @if($room->water_mode === 'fixed')
+                    <div class="fw-bold text-info">
+                        ${{ number_format($room->water_fixed_fee,2) }}
+                        <span class="text-muted fw-normal" style="font-size:.7rem">/mo</span>
+                    </div>
+                @else
+                    <div class="fw-bold text-info">
+                        {{ number_format($room->water_rate) }}
+                        <span class="text-muted fw-normal" style="font-size:.7rem">៛/m³</span>
+                    </div>
+                @endif
             </div>
-            <div class="col-md-4">
-                <div class="text-muted small">Electric Rate</div>
-                <div class="fs-5 fw-bold text-warning">{{ number_format($room->electric_rate) }} ៛/kWh</div>
+            <div class="col-4">
+                <div class="text-muted" style="font-size:.7rem">ELECTRIC</div>
+                <div class="fw-bold text-warning">
+                    {{ number_format($room->electric_rate) }}
+                    <span class="text-muted fw-normal" style="font-size:.7rem">៛/kWh</span>
+                </div>
             </div>
         </div>
-        <a href="{{ route('rooms.edit', $room) }}" class="btn btn-outline-primary btn-sm">
-            <i class="bi bi-pencil me-1"></i>Edit Rates
-        </a>
+
+        {{-- Tenant --}}
+        @if($room->activeTenant)
+        <div class="rounded-3 p-2 mb-3 d-flex align-items-center gap-2"
+             style="background:#f0fdf4; border:1px solid #bbf7d0">
+            <i class="bi bi-person-check text-success"></i>
+            <div>
+                <div class="small fw-semibold">{{ $room->activeTenant->name }}</div>
+                @if($room->activeTenant->phone)
+                <div class="text-muted" style="font-size:.72rem">
+                    {{ $room->activeTenant->phone }}
+                </div>
+                @endif
+            </div>
+            <span class="ms-auto text-muted" style="font-size:.72rem">
+                Since {{ $room->activeTenant->move_in_date->format('d M Y') }}
+            </span>
+        </div>
+        @else
+        <div class="rounded-3 p-2 mb-3 d-flex align-items-center gap-2"
+             style="background:#f8fafc; border:1px solid #e2e8f0">
+            <i class="bi bi-house text-muted"></i>
+            <span class="text-muted small">Vacant — no tenant</span>
+            <a href="{{ route('tenants.create') }}" class="ms-auto btn btn-xs btn-outline-success"
+               style="font-size:.72rem; padding:2px 10px; border-radius:20px">
+                + Add Tenant
+            </a>
+        </div>
+        @endif
+
+        {{-- Actions --}}
+        <div class="d-flex gap-2">
+            <a href="{{ route('rooms.edit', $room) }}"
+               class="btn btn-outline-primary btn-sm flex-grow-1">
+                <i class="bi bi-pencil me-1"></i>Edit
+            </a>
+            @if($room->status === 'vacant')
+            <form method="POST" action="{{ route('rooms.destroy', $room) }}"
+                  onsubmit="return confirm('Delete {{ $room->name }}?')">
+                @csrf @method('DELETE')
+                <button class="btn btn-outline-danger btn-sm">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </form>
+            @endif
+        </div>
+
     </div>
 </div>
-@endforeach
+@empty
+<div class="card">
+    <div class="text-center text-muted py-5">
+        <i class="bi bi-house-door fs-2 d-block mb-2"></i>
+        No rooms yet.
+        <div class="mt-2">
+            <a href="{{ route('rooms.create') }}" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-lg me-1"></i>Add First Room
+            </a>
+        </div>
+    </div>
+</div>
+@endforelse
 
 @endsection
