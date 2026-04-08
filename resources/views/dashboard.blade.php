@@ -53,7 +53,7 @@
                 <div class="fw-semibold small">{{ $room->activeTenant?->name ?? '—' }}</div>
             </div>
             <div class="col-4">
-                <div class="text-muted" style="font-size:.72rem">RENT</div>
+                <div class="text-muted" style="font-size:.72rem">RENT FEE</div>
                 <div class="fw-semibold small text-primary">${{ number_format($room->monthly_fee,2) }}</div>
             </div>
             <div class="col-4">
