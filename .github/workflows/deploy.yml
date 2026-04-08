@@ -84,26 +84,17 @@ jobs:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
         with:
-          host: ${{ secrets.A2_HOST }}
+          host:     ${{ secrets.A2_HOST }}
           username: ${{ secrets.A2_USER }}
           key: ${{ secrets.A2_PRIVATE_KEY }}
-          port: ${{ secrets.A2_PORT }}
+          port:     ${{ secrets.A2_PORT }}
           script: |
-            # Go to server repo
             cd ~/room-rental
-            # Force reset to match GitHub
-            git fetch origin
-            git reset --hard origin/main
-            git clean -fd
-            # Install composer dependencies
+            git pull origin main
             composer install --no-dev --optimize-autoloader --no-interaction
-            # Run migrations
             php artisan migrate --force
-            # Clear caches
-            php artisan config:clear
-            php artisan route:clear
-            php artisan view:clear
-            php artisan cache:clear
-            # Sync to web root
-            rsync -av --delete ~/room-rental/ ~/domainname/
+            php artisan optimize:clear
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
             echo "✅ Deployed at $(date)"
