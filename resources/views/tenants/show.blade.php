@@ -126,7 +126,74 @@
     <div class="text-center text-muted py-3 small">No invoices yet</div>
     @endforelse
 </div>
+{{-- Document Card --}}
+<div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-file-earmark-person me-2"></i>ID / Document</span>
+        <a href="{{ route('documents.create', $tenant) }}"
+           class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-{{ $tenant->hasDocument() ? 'arrow-repeat' : 'upload' }} me-1"></i>
+            {{ $tenant->hasDocument() ? 'Replace' : 'Upload' }}
+        </a>
+    </div>
 
+    @if($tenant->hasDocument())
+    <div class="card-body p-0">
+
+        {{-- Image preview --}}
+        @if($tenant->isDocumentImage())
+        <div class="text-center p-3 border-bottom">
+            <a href="{{ route('documents.show', $tenant) }}" target="_blank">
+                <img src="{{ $tenant->document_url }}"
+                     alt="ID Document"
+                     style="max-height:220px; max-width:100%; border-radius:10px; object-fit:cover">
+            </a>
+        </div>
+        @elseif($tenant->isDocumentPdf())
+        <div class="text-center p-4 border-bottom" style="background:#fef2f2">
+            <i class="bi bi-file-earmark-pdf text-danger" style="font-size:3rem"></i>
+            <div class="fw-semibold small mt-2">PDF Document</div>
+        </div>
+        @endif
+
+        {{-- Document info --}}
+        <div class="px-3 py-2 d-flex justify-content-between align-items-center">
+            <div>
+                <div class="fw-semibold small">{{ $tenant->id_card_type_label }}</div>
+                <div class="text-muted" style="font-size:.72rem">
+                    {{ $tenant->id_card_original_name }}
+                    &nbsp;·&nbsp;
+                    Uploaded {{ $tenant->id_card_uploaded_at?->format('d M Y') }}
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{{ route('documents.show', $tenant) }}"
+                   target="_blank"
+                   class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-eye"></i>
+                </a>
+                <form method="POST" action="{{ route('documents.destroy', $tenant) }}"
+                      onsubmit="return confirm('Delete this document?')">
+                    @csrf @method('DELETE')
+                    <button class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    @else
+    <div class="card-body text-center py-4 text-muted">
+        <i class="bi bi-file-earmark-person fs-2 d-block mb-2 opacity-25"></i>
+        <div class="small">No document uploaded yet</div>
+        <a href="{{ route('documents.create', $tenant) }}"
+           class="btn btn-sm btn-primary mt-3">
+            <i class="bi bi-upload me-1"></i>Upload Now
+        </a>
+    </div>
+    @endif
+</div>
 {{-- Actions --}}
 @if($tenant->is_active)
 <a href="{{ route('tenants.checkout', $tenant) }}" class="btn btn-warning w-100 mb-2">

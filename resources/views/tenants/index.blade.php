@@ -39,7 +39,14 @@
                         {{ $tenant->days_stayed }} days
                     </span>
                 </div>
-
+                {{-- document status badge --}}
+                <span class="badge rounded-pill"
+                    style="background:{{ $tenant->hasDocument() ? '#eff6ff' : '#fef2f2' }};
+                            color:{{ $tenant->hasDocument() ? '#1d4ed8' : '#991b1b' }};
+                            font-weight:500">
+                    <i class="bi bi-{{ $tenant->hasDocument() ? 'file-earmark-check' : 'file-earmark-x' }} me-1"></i>
+                    {{ $tenant->hasDocument() ? 'Doc ✓' : 'No Doc' }}
+                </span>
                 @if($tenant->notes)
                 <div class="text-muted mt-1" style="font-size:.75rem">
                     <i class="bi bi-chat-left-text me-1"></i>{{ $tenant->notes }}
