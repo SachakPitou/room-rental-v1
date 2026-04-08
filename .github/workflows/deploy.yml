@@ -19,7 +19,7 @@ jobs:
           MYSQL_ROOT_PASSWORD: secret
         ports: ['3306:3306']
         options: >-
-          --health-cmd="mysqladmin ping"
+          --health-cmd="mysqladmin ping --silent"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=3
@@ -36,28 +36,43 @@ jobs:
       - name: Install dependencies
         run: composer install --no-progress --prefer-dist --no-interaction
 
-      - name: Copy .env
-        run: cp .env.example .env
-
-      - name: Generate key
-        run: php artisan key:generate
-
-      - name: Run migrations
-        run: php artisan migrate --force
+      - name: Setup Test Environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
         env:
+          DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
+          DB_PORT: 3306
           DB_DATABASE: room_rental_test
           DB_USERNAME: root
           DB_PASSWORD: secret
 
-      - name: Run tests
+      - name: Run Migrations
+        run: php artisan migrate --force
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: room_rental_test
+          DB_USERNAME: root
+          DB_PASSWORD: secret
+
+      - name: Run Tests
         run: php artisan test
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: room_rental_test
+          DB_USERNAME: root
+          DB_PASSWORD: secret
 
   # ── Job 2: Deploy ────────────────────────────
   deploy:
     name: Deploy to A2 Hosting
     runs-on: ubuntu-latest
-    needs: test        # only deploy if tests pass
+    needs: test        # Only deploy if tests pass
     if: github.ref == 'refs/heads/main'
 
     steps:
@@ -71,7 +86,7 @@ jobs:
       - name: Install production dependencies
         run: composer install --no-dev --optimize-autoloader --no-interaction
 
-      - name: Setup Node & build assets
+      - name: Setup Node & Build Assets
         uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -84,10 +99,10 @@ jobs:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
         with:
-          host:     ${{ secrets.A2_HOST }}
+          host: ${{ secrets.A2_HOST }}
           username: ${{ secrets.A2_USER }}
           key: ${{ secrets.A2_PRIVATE_KEY }}
-          port:     ${{ secrets.A2_PORT }}
+          port: ${{ secrets.A2_PORT }}
           script: |
             cd ~/room-rental
             git pull origin main
