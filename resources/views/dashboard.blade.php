@@ -49,7 +49,7 @@
     <div class="card-body">
         <div class="row g-2 text-center">
             <div class="col-4">
-                <div class="text-muted" style="font-size:.72rem">TENANT NAME</div>
+                <div class="text-muted" style="font-size:.72rem">TENANT's NAME</div>
                 <div class="fw-semibold small">{{ $room->activeTenant?->name ?? '—' }}</div>
             </div>
             <div class="col-4">
