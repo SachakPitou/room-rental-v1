@@ -57,7 +57,7 @@
                 <div class="fw-semibold small text-primary">${{ number_format($room->monthly_fee,2) }}</div>
             </div>
             <div class="col-4">
-                <div class="text-muted" style="font-size:.72rem">WATER</div>
+                <div class="text-muted" style="font-size:.72rem">WATER FEE</div>
                 <div class="fw-semibold small">
                     @if($room->water_mode === 'fixed')
                         ${{ number_format($room->water_fixed_fee,2) }}/mo
