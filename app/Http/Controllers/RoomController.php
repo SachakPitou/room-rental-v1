@@ -12,6 +12,31 @@ class RoomController extends Controller
         return view('rooms.index', compact('rooms'));
     }
 
+    public function show(Room $room)
+    {
+        $room->load([
+            'tenants' => function($q) {
+                $q->orderByDesc('move_in_date');
+            },
+            'tenants.invoices',
+            'activeTenant',
+            'invoices' => function($q) {
+                $q->latest()->take(5);
+            },
+        ]);
+
+        // Stats
+        $totalTenants   = $room->tenants->count();
+        $totalIncome    = $room->invoices()->where('status','paid')->sum('total_usd');
+        $pendingIncome  = $room->invoices()->where('status','unpaid')->sum('total_usd');
+        $totalInvoices  = $room->invoices()->count();
+
+        return view('rooms.show', compact(
+            'room', 'totalTenants', 'totalIncome',
+            'pendingIncome', 'totalInvoices'
+        ));
+    }
+
     public function create()
     {
         return view('rooms.create');

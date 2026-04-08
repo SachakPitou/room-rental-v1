@@ -86,13 +86,17 @@
 
         {{-- Actions --}}
         <div class="d-flex gap-2">
+            <a href="{{ route('rooms.show', $room) }}"
+            class="btn btn-outline-secondary btn-sm flex-grow-1">
+                <i class="bi bi-clock-history me-1"></i>History
+            </a>
             <a href="{{ route('rooms.edit', $room) }}"
-               class="btn btn-outline-primary btn-sm flex-grow-1">
+            class="btn btn-outline-primary btn-sm flex-grow-1">
                 <i class="bi bi-pencil me-1"></i>Edit
             </a>
             @if($room->status === 'vacant')
             <form method="POST" action="{{ route('rooms.destroy', $room) }}"
-                  onsubmit="return confirm('Delete {{ $room->name }}?')">
+                onsubmit="return confirm('Delete {{ $room->name }}?')">
                 @csrf @method('DELETE')
                 <button class="btn btn-outline-danger btn-sm">
                     <i class="bi bi-trash"></i>

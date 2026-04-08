@@ -7,8 +7,8 @@ use App\Http\Controllers\DocumentController;
 
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
-Route::resource('rooms',   RoomController::class)
-         ->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
+Route::resource('rooms', RoomController::class)
+     ->only(['index', 'show', 'create', 'store', 'edit', 'update', 'destroy']);
 
 Route::resource('tenants', TenantController::class)
          ->only(['index', 'create', 'store', 'show', 'destroy']);
