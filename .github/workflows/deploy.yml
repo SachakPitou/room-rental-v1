@@ -86,7 +86,7 @@ jobs:
         with:
           host:     ${{ secrets.A2_HOST }}
           username: ${{ secrets.A2_USER }}
-          password: ${{ secrets.A2_PRIVATE_KEY }}
+          key: ${{ secrets.A2_PRIVATE_KEY }}
           port:     ${{ secrets.A2_PORT }}
           script: |
             cd ~/room-rental
