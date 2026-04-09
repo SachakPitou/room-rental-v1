@@ -248,8 +248,15 @@
             <div class="party-lbl">Bill To</div>
             <div class="party-name">{{ $invoice->tenant->name }}</div>
             <div class="party-info">
-                @if($invoice->tenant->phone)Tel: {{ $invoice->tenant->phone }}<br>@endif
-                @if($invoice->tenant->national_id)ID: {{ $invoice->tenant->national_id }}<br>@endif
+                @if($invoice->tenant->phone)
+                    Tel: {{ $invoice->tenant->phone }}<br>
+                @endif
+                @if($invoice->tenant->national_id)
+                    ID: {{ $invoice->tenant->national_id }}<br>
+                @endif
+                @if($invoice->tenant->nationality)
+                    Nationality: {{ $invoice->tenant->nationality }}<br>
+                @endif
                 Move-in: {{ $invoice->tenant->move_in_date->format('d M Y') }}
             </div>
         </div>

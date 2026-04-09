@@ -26,32 +26,75 @@ class TenantController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'room_id'       => 'required|exists:rooms,id',
-            'name'          => 'required|string|max:255',
-            'phone'         => 'nullable|string|max:20',
-            'national_id'   => 'nullable|string|max:50',
-            'move_in_date'  => 'required|date',
-            'check_in_time' => 'nullable|date_format:H:i',
-            'notes'         => 'nullable|string|max:500',
+            'room_id'        => 'required|exists:rooms,id',
+            'name'           => 'required|string|max:255',
+            'phone'          => 'nullable|string|max:20',
+            'national_id'    => 'nullable|string|max:50',
+            'date_of_birth'  => 'nullable|date|before:today',
+            'birth_location' => 'nullable|string|max:500',
+            'nationality'    => 'nullable|string|max:100',
+            'country'        => 'nullable|string|max:100',
+            'move_in_date'   => 'required|date',
+            'check_in_time'  => 'nullable|date_format:H:i',
+            'notes'          => 'nullable|string|max:500',
         ]);
 
         Tenant::create([
-            'room_id'       => $request->room_id,
-            'name'          => $request->name,
-            'phone'         => $request->phone,
-            'national_id'   => $request->national_id,
-            'move_in_date'  => $request->move_in_date,
-            'check_in_time' => $request->check_in_time,
-            'notes'         => $request->notes,
-            'is_active'     => true,
+            'room_id'        => $request->room_id,
+            'name'           => $request->name,
+            'phone'          => $request->phone,
+            'national_id'    => $request->national_id,
+            'date_of_birth'  => $request->date_of_birth,
+            'birth_location' => $request->birth_location,
+            'nationality'    => $request->nationality,
+            'country'        => $request->country,
+            'move_in_date'   => $request->move_in_date,
+            'check_in_time'  => $request->check_in_time,
+            'notes'          => $request->notes,
+            'is_active'      => true,
         ]);
 
         Room::find($request->room_id)->update(['status' => 'occupied']);
 
         return redirect()->route('tenants.index')
-                         ->with('success', 'Tenant checked in successfully!');
+                        ->with('success', 'Tenant checked in successfully!');
     }
 
+    public function edit(Tenant $tenant)
+    {
+        $rooms = Room::where('status', 'vacant')
+                    ->orWhere('id', $tenant->room_id)
+                    ->get();
+        return view('tenants.edit', compact('tenant', 'rooms'));
+    }
+
+    public function update(Request $request, Tenant $tenant)
+    {
+        $request->validate([
+            'name'           => 'required|string|max:255',
+            'phone'          => 'nullable|string|max:20',
+            'national_id'    => 'nullable|string|max:50',
+            'date_of_birth'  => 'nullable|date|before:today',
+            'birth_location' => 'nullable|string|max:500',
+            'nationality'    => 'nullable|string|max:100',
+            'country'        => 'nullable|string|max:100',
+            'notes'          => 'nullable|string|max:500',
+        ]);
+
+        $tenant->update([
+            'name'           => $request->name,
+            'phone'          => $request->phone,
+            'national_id'    => $request->national_id,
+            'date_of_birth'  => $request->date_of_birth,
+            'birth_location' => $request->birth_location,
+            'nationality'    => $request->nationality,
+            'country'        => $request->country,
+            'notes'          => $request->notes,
+        ]);
+
+        return redirect()->route('tenants.show', $tenant)
+                        ->with('success', 'Tenant information updated!');
+    }
     public function show(Tenant $tenant)
     {
         $tenant->load('room', 'invoices');

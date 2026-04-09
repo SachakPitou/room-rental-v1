@@ -7,14 +7,31 @@ use Carbon\Carbon;
 class Tenant extends Model
 {
     protected $fillable = [
-        'room_id', 'name', 'phone', 'national_id',
-        'move_in_date',  'check_in_time',
-        'move_out_date', 'check_out_time',
-        'notes', 'is_active',
-        'id_card_path', 'id_card_type',
-        'id_card_original_name', 'id_card_uploaded_at',
-        'photo_path',   // ← add this
+    'room_id', 'name', 'phone', 'national_id',
+    'date_of_birth', 'birth_location', 'nationality', 'country',
+    'move_in_date',  'check_in_time',
+    'move_out_date', 'check_out_time',
+    'notes', 'is_active',
+    'id_card_path', 'id_card_type',
+    'id_card_original_name', 'id_card_uploaded_at',
+    'photo_path',
     ];
+
+    protected $casts = [
+        'move_in_date'        => 'date',
+        'move_out_date'       => 'date',
+        'date_of_birth'       => 'date',
+        'is_active'           => 'boolean',
+        'id_card_uploaded_at' => 'datetime',
+    ];
+
+    // Age calculated from date of birth
+    public function getAgeAttribute(): ?int
+    {
+        return $this->date_of_birth
+            ? $this->date_of_birth->age
+            : null;
+    }
 
     // Has profile photo?
     public function hasPhoto(): bool
@@ -29,13 +46,6 @@ class Tenant extends Model
             ? asset('storage/' . $this->photo_path)
             : null;
     }
-
-    protected $casts = [
-        'move_in_date'       => 'date',
-        'move_out_date'      => 'date',
-        'is_active'          => 'boolean',
-        'id_card_uploaded_at'=> 'datetime',
-    ];
 
     public function room()
     {

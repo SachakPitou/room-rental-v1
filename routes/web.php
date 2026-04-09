@@ -11,7 +11,7 @@ Route::resource('rooms', RoomController::class)
      ->only(['index', 'show', 'create', 'store', 'edit', 'update', 'destroy']);
 
 Route::resource('tenants', TenantController::class)
-         ->only(['index', 'create', 'store', 'show', 'destroy']);
+     ->only(['index', 'create', 'store', 'show', 'edit', 'update', 'destroy']);
 
 Route::get ('tenants/{tenant}/checkout',       [TenantController::class, 'editCheckout'])->name('tenants.checkout');
 Route::post('tenants/{tenant}/checkout',       [TenantController::class, 'checkout'])->name('tenants.checkout.store');

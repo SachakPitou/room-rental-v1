@@ -13,8 +13,6 @@
 <div class="card mb-3">
 <div class="card-body">
     <div class="d-flex align-items-center gap-3 mb-3">
-
-        {{-- Avatar with photo --}}
         <div class="position-relative">
             <x-tenant-avatar :tenant="$tenant" :size="58" />
             <a href="{{ route('documents.photo', $tenant) }}"
@@ -23,29 +21,49 @@
                 <i class="bi bi-camera-fill" style="font-size:.6rem"></i>
             </a>
         </div>
-
         <div class="flex-grow-1">
             <div class="fw-bold fs-6">{{ $tenant->name }}</div>
             <div class="text-muted small">{{ $tenant->room->name }}</div>
+            @if($tenant->age)
+            <div class="text-muted small">
+                <i class="bi bi-cake2 me-1"></i>{{ $tenant->age }} years old
+            </div>
+            @endif
         </div>
-        <span class="badge bg-{{ $tenant->is_active ? 'success' : 'secondary' }}">
-            {{ $tenant->is_active ? 'Active' : 'Moved Out' }}
-        </span>
+        <div class="d-flex flex-column gap-1 align-items-end">
+            <span class="badge bg-{{ $tenant->is_active ? 'success' : 'secondary' }}">
+                {{ $tenant->is_active ? 'Active' : 'Moved Out' }}
+            </span>
+            <a href="{{ route('tenants.edit', $tenant) }}"
+               class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-pencil me-1"></i>Edit
+            </a>
+        </div>
     </div>
 
     {{-- Info rows --}}
     @php
     $rows = [
-        ['Phone',       $tenant->phone ?? '—',       'bi-telephone'],
-        ['National ID', $tenant->national_id ?? '—', 'bi-person-badge'],
+        ['Phone',         $tenant->phone          ?? '—', 'bi-telephone'],
+        ['National ID',   $tenant->national_id    ?? '—', 'bi-person-badge'],
+        ['Date of Birth', $tenant->date_of_birth
+            ? $tenant->date_of_birth->format('d M Y') . ' (Age: ' . $tenant->age . ')'
+            : '—',                                        'bi-calendar-date'],
+        ['Nationality',   $tenant->nationality    ?? '—', 'bi-flag'],
+        ['Country',       $tenant->country        ?? '—', 'bi-globe'],
+        ['Birth Location',$tenant->birth_location ?? '—', 'bi-geo-alt'],
     ];
     @endphp
-    @foreach($rows as [$label,$value,$icon])
-    <div class="d-flex justify-content-between py-2 border-bottom">
-        <span class="text-muted small"><i class="bi {{ $icon }} me-2"></i>{{ $label }}</span>
-        <span class="small fw-semibold">{{ $value }}</span>
+
+    @foreach($rows as [$label, $value, $icon])
+    <div class="d-flex justify-content-between align-items-start py-2 border-bottom gap-3">
+        <span class="text-muted small flex-shrink-0">
+            <i class="bi {{ $icon }} me-2"></i>{{ $label }}
+        </span>
+        <span class="small fw-semibold text-end">{{ $value }}</span>
     </div>
     @endforeach
+
 </div>
 </div>
 
