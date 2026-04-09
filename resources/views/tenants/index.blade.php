@@ -19,7 +19,9 @@
     @foreach($active as $tenant)
     <div class="px-3 py-3 border-bottom">
         <div class="d-flex justify-content-between align-items-start gap-2">
+            <x-tenant-avatar :tenant="$tenant" :size="44" />
             <div class="flex-grow-1">
+                
                 <div class="fw-semibold">{{ $tenant->name }}</div>
                 <div class="text-muted small">
                     <i class="bi bi-house-door me-1"></i>{{ $tenant->room->name }}

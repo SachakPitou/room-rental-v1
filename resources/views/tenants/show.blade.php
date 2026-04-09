@@ -13,27 +13,34 @@
 <div class="card mb-3">
 <div class="card-body">
     <div class="d-flex align-items-center gap-3 mb-3">
-        <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white"
-             style="width:54px; height:54px; background:#1e293b; font-size:1.2rem; flex-shrink:0">
-            {{ strtoupper(substr($tenant->name, 0, 2)) }}
+
+        {{-- Avatar with photo --}}
+        <div class="position-relative">
+            <x-tenant-avatar :tenant="$tenant" :size="58" />
+            <a href="{{ route('documents.photo', $tenant) }}"
+               class="position-absolute d-flex align-items-center justify-content-center"
+               style="bottom:0;right:0;width:22px;height:22px;background:#1e293b;border-radius:50%;color:white;text-decoration:none">
+                <i class="bi bi-camera-fill" style="font-size:.6rem"></i>
+            </a>
         </div>
-        <div>
+
+        <div class="flex-grow-1">
             <div class="fw-bold fs-6">{{ $tenant->name }}</div>
             <div class="text-muted small">{{ $tenant->room->name }}</div>
         </div>
-        <span class="ms-auto badge bg-{{ $tenant->is_active ? 'success' : 'secondary' }}">
+        <span class="badge bg-{{ $tenant->is_active ? 'success' : 'secondary' }}">
             {{ $tenant->is_active ? 'Active' : 'Moved Out' }}
         </span>
     </div>
 
+    {{-- Info rows --}}
     @php
     $rows = [
         ['Phone',       $tenant->phone ?? '—',       'bi-telephone'],
         ['National ID', $tenant->national_id ?? '—', 'bi-person-badge'],
     ];
     @endphp
-
-    @foreach($rows as [$label, $value, $icon])
+    @foreach($rows as [$label,$value,$icon])
     <div class="d-flex justify-content-between py-2 border-bottom">
         <span class="text-muted small"><i class="bi {{ $icon }} me-2"></i>{{ $label }}</span>
         <span class="small fw-semibold">{{ $value }}</span>

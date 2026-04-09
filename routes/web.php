@@ -20,6 +20,10 @@ Route::get ('tenants/{tenant}/document/upload',  [DocumentController::class, 'cr
 Route::post('tenants/{tenant}/document',         [DocumentController::class, 'store'])->name('documents.store');
 Route::get ('tenants/{tenant}/document/view',    [DocumentController::class, 'show'])->name('documents.show');
 Route::delete('tenants/{tenant}/document',       [DocumentController::class, 'destroy'])->name('documents.destroy');
+// Photo routes
+Route::get   ('tenants/{tenant}/photo',         [DocumentController::class, 'photoCreate'])->name('documents.photo');
+Route::post  ('tenants/{tenant}/photo',         [DocumentController::class, 'photoStore'])->name('documents.photo.store');
+Route::delete('tenants/{tenant}/photo',         [DocumentController::class, 'photoDestroy'])->name('documents.photo.destroy');
 
 Route::resource('invoices', InvoiceController::class)
          ->only(['index', 'create', 'store', 'show']);

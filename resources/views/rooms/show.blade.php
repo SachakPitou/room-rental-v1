@@ -93,10 +93,8 @@
 <div class="card mb-3" style="border-left:4px solid #16a34a; border-radius:0 14px 14px 0">
     <div class="card-body">
         <div class="d-flex align-items-center gap-3">
-            <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white flex-shrink-0"
-                 style="width:46px;height:46px;background:#16a34a;font-size:1rem">
-                {{ strtoupper(substr($room->activeTenant->name,0,2)) }}
-            </div>
+            {{-- current tenant avatar --}}
+            <x-tenant-avatar :tenant="$room->activeTenant" :size="46" />
             <div class="flex-grow-1">
                 <div class="fw-bold">{{ $room->activeTenant->name }}</div>
                 <div class="text-muted small">
@@ -163,11 +161,8 @@
     <div class="px-3 py-3 border-bottom">
         <div class="d-flex align-items-start gap-3">
 
-            {{-- Avatar --}}
-            <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white flex-shrink-0"
-                 style="width:40px;height:40px;background:#64748b;font-size:.85rem">
-                {{ strtoupper(substr($tenant->name,0,2)) }}
-            </div>
+            {{-- past tenant avatars --}}
+            <x-tenant-avatar :tenant="$tenant" :size="40" />
 
             <div class="flex-grow-1 min-width-0">
                 <div class="fw-semibold">{{ $tenant->name }}</div>

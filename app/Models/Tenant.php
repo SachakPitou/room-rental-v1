@@ -13,7 +13,22 @@ class Tenant extends Model
         'notes', 'is_active',
         'id_card_path', 'id_card_type',
         'id_card_original_name', 'id_card_uploaded_at',
+        'photo_path',   // ← add this
     ];
+
+    // Has profile photo?
+    public function hasPhoto(): bool
+    {
+        return !empty($this->photo_path);
+    }
+
+    // Full photo URL
+    public function getPhotoUrlAttribute(): ?string
+    {
+        return $this->photo_path
+            ? asset('storage/' . $this->photo_path)
+            : null;
+    }
 
     protected $casts = [
         'move_in_date'       => 'date',

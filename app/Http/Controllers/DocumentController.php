@@ -84,4 +84,49 @@ class DocumentController extends Controller
         return redirect()->route('tenants.show', $tenant)
                          ->with('success', 'Document deleted.');
     }
+    // Show photo upload form
+    public function photoCreate(Tenant $tenant)
+    {
+        return view('documents.photo', compact('tenant'));
+    }
+
+    // Store photo
+    public function photoStore(Request $request, Tenant $tenant)
+    {
+        $request->validate([
+            'photo' => [
+                'required',
+                'file',
+                'image',
+                'max:3072',   // 3MB max
+                'mimes:jpg,jpeg,png,webp',
+            ],
+        ]);
+
+        // Delete old photo if exists
+        if ($tenant->photo_path) {
+            Storage::disk('public')->delete($tenant->photo_path);
+        }
+
+        $file     = $request->file('photo');
+        $filename = 'photo_' . $tenant->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+        $path     = $file->storeAs('photos', $filename, 'public');
+
+        $tenant->update(['photo_path' => $path]);
+
+        return redirect()->route('tenants.show', $tenant)
+                        ->with('success', 'Photo updated successfully!');
+    }
+
+    // Delete photo
+    public function photoDestroy(Tenant $tenant)
+    {
+        if ($tenant->photo_path) {
+            Storage::disk('public')->delete($tenant->photo_path);
+            $tenant->update(['photo_path' => null]);
+        }
+
+        return redirect()->route('tenants.show', $tenant)
+                        ->with('success', 'Photo removed.');
+    }
 }
