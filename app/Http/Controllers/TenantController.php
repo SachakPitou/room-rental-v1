@@ -37,9 +37,15 @@ class TenantController extends Controller
             'move_in_date'   => 'required|date',
             'check_in_time'  => 'nullable|date_format:H:i',
             'notes'          => 'nullable|string|max:500',
+            // Photo
+            'photo'          => 'nullable|image|max:3072|mimes:jpg,jpeg,png,webp',
+            // Document
+            'id_card_type'   => 'nullable|in:national_id,passport,other',
+            'document'       => 'nullable|file|max:5120|mimes:jpg,jpeg,png,webp,pdf',
         ]);
 
-        Tenant::create([
+        // Create tenant first
+        $tenant = Tenant::create([
             'room_id'        => $request->room_id,
             'name'           => $request->name,
             'phone'          => $request->phone,
@@ -54,12 +60,32 @@ class TenantController extends Controller
             'is_active'      => true,
         ]);
 
+        // Upload photo if provided
+        if ($request->hasFile('photo')) {
+            $file     = $request->file('photo');
+            $filename = 'photo_' . $tenant->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+            $path     = $file->storeAs('photos', $filename, 'public');
+            $tenant->update(['photo_path' => $path]);
+        }
+
+        // Upload document if provided
+        if ($request->hasFile('document')) {
+            $file     = $request->file('document');
+            $filename = 'tenant_' . $tenant->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+            $path     = $file->storeAs('documents', $filename, 'public');
+            $tenant->update([
+                'id_card_type'          => $request->id_card_type ?? 'national_id',
+                'id_card_path'          => $path,
+                'id_card_original_name' => $file->getClientOriginalName(),
+                'id_card_uploaded_at'   => now(),
+            ]);
+        }
+
         Room::find($request->room_id)->update(['status' => 'occupied']);
 
-        return redirect()->route('tenants.index')
+        return redirect()->route('tenants.show', $tenant)
                         ->with('success', 'Tenant checked in successfully!');
     }
-
     public function edit(Tenant $tenant)
     {
         $rooms = Room::where('status', 'vacant')
