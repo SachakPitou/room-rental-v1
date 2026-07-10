@@ -32,8 +32,19 @@ jobs:
           php-version: '8.2'
           extensions: pdo_mysql, mbstring, gd, bcmath
 
-      - name: Install dependencies
+      - name: Install PHP dependencies
         run: composer install --no-progress --prefer-dist --no-interaction
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install & build frontend assets
+        run: |
+          npm ci
+          npm run build
 
       - name: Copy .env
         run: cp .env.example .env
@@ -83,10 +94,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
 
       - name: Build frontend assets
         run: |
-          npm install
+          npm ci
           npm run build
 
       - name: Deploy via SSH
@@ -98,25 +110,25 @@ jobs:
           port: ${{ secrets.A2_PORT }}
           script: |
             cd ~/room-rental
-            
+
             # 1. Pull latest code
             git pull origin main
-            
+
             # 2. Install dependencies (WITHOUT Pail/Dev tools)
             composer install --no-dev --optimize-autoloader --no-interaction
-            
+
             # 3. CRITICAL: Manually delete "ghost" caches that cause 500 errors
             # This works even if artisan is crashing.
             rm -f bootstrap/cache/config.php
             rm -f bootstrap/cache/services.php
             rm -f bootstrap/cache/packages.php
             rm -f bootstrap/cache/routes-v7.php
-            
+
             # 4. Standard Laravel Optimization
             php artisan migrate --force
             php artisan optimize:clear
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
-            
+
             echo "✅ Deployment Successful at $(date)"
