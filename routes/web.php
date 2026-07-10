@@ -65,10 +65,11 @@ Route::middleware('auth')->group(function () {
         [DocumentController::class, 'photoDestroy'])->name('documents.photo.destroy');
 
     // Change password
+    // Change password
     Route::get('change-password',
         [PasswordController::class, 'edit'])->name('password.change');
     Route::put('change-password',
-        [PasswordController::class, 'update'])->name('password.update');
+        [PasswordController::class, 'update'])->name('password.change.update');
 
     // Storage serve (shared hosting fix)
     Route::get('uploads/{type}/{filename}', function ($type, $filename) {
