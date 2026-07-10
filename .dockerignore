@@ -1,0 +1,14 @@
+node_modules
+vendor
+.git
+.gitignore
+.env
+*.log
+storage/logs/*
+storage/app/public/photos/*
+storage/app/public/documents/*
+public/build
+public/storage
+docker/data
+.github
+README.md

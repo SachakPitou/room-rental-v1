@@ -37,7 +37,7 @@
     </div>
 </div>
 
-{{-- Room status --}}
+{{-- Room Status --}}
 @if($room)
 <div class="card mb-3">
     <div class="card-header d-flex justify-content-between align-items-center">
@@ -47,18 +47,48 @@
         </span>
     </div>
     <div class="card-body">
+        @if($room->activeTenant)
+        <div class="d-flex align-items-center gap-3 p-2 rounded-3 mb-3"
+             style="background:#f0fdf4;border:1px solid #bbf7d0">
+            <x-tenant-avatar :tenant="$room->activeTenant" :size="46" />
+            <div class="flex-grow-1">
+                <div class="fw-semibold">{{ $room->activeTenant->name }}</div>
+                @if($room->activeTenant->phone)
+                <div class="text-muted small">
+                    <i class="bi bi-telephone me-1"></i>{{ $room->activeTenant->phone }}
+                </div>
+                @endif
+                <div class="text-muted small">
+                    <i class="bi bi-calendar3 me-1"></i>
+                    Since {{ $room->activeTenant->move_in_date->format('d M Y') }}
+                    &nbsp;·&nbsp; {{ $room->activeTenant->days_stayed }} days
+                </div>
+            </div>
+            <a href="{{ route('tenants.show',$room->activeTenant) }}"
+               class="btn btn-sm btn-outline-success">
+                <i class="bi bi-eye"></i>
+            </a>
+        </div>
+        @else
+        <div class="d-flex align-items-center gap-2 p-2 rounded-3 mb-3 text-muted"
+             style="background:#f8fafc;border:1px solid #e2e8f0">
+            <i class="bi bi-house fs-5 opacity-50"></i>
+            <span class="small">Vacant — no tenant</span>
+            <a href="{{ route('tenants.create') }}"
+               class="ms-auto btn btn-sm btn-outline-success">
+                <i class="bi bi-person-plus me-1"></i>Add Tenant
+            </a>
+        </div>
+        @endif
+
         <div class="row g-2 text-center">
             <div class="col-4">
-                <div class="text-muted" style="font-size:.72rem">TENANT FULL NAME</div>
-                <div class="fw-semibold small">{{ $room->activeTenant?->name ?? '—' }}</div>
+                <div class="text-muted" style="font-size:.7rem">RENT</div>
+                <div class="fw-bold text-primary small">${{ number_format($room->monthly_fee,2) }}</div>
             </div>
             <div class="col-4">
-                <div class="text-muted" style="font-size:.72rem">RENT FEE</div>
-                <div class="fw-semibold small text-primary">${{ number_format($room->monthly_fee,2) }}</div>
-            </div>
-            <div class="col-4">
-                <div class="text-muted" style="font-size:.72rem">WATER FEE</div>
-                <div class="fw-semibold small">
+                <div class="text-muted" style="font-size:.7rem">WATER</div>
+                <div class="fw-bold text-info small">
                     @if($room->water_mode === 'fixed')
                         ${{ number_format($room->water_fixed_fee,2) }}/mo
                     @else
@@ -66,58 +96,82 @@
                     @endif
                 </div>
             </div>
+            <div class="col-4">
+                <div class="text-muted" style="font-size:.7rem">ELECTRIC</div>
+                <div class="fw-bold text-warning small">{{ number_format($room->electric_rate) }}៛</div>
+            </div>
         </div>
     </div>
 </div>
 @endif
 
-{{-- Recent invoices --}}
+{{-- Recent Invoices --}}
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <span><i class="bi bi-receipt me-2"></i>Recent Invoices</span>
-        <a href="{{ route('invoices.index') }}" class="btn btn-sm btn-outline-secondary">All</a>
+        <a href="{{ route('invoices.index') }}" class="btn btn-sm btn-outline-secondary">View All</a>
     </div>
 
-    {{-- Mobile: card list --}}
+    {{-- Mobile --}}
     <div class="d-block d-md-none">
         @forelse($recentInvoices as $inv)
         <a href="{{ route('invoices.show',$inv) }}" class="text-decoration-none text-dark">
-            <div class="d-flex align-items-center justify-content-between px-3 py-3 border-bottom">
+            <div class="d-flex justify-content-between align-items-center px-3 py-3 border-bottom">
                 <div>
                     <div class="fw-semibold small">{{ $inv->month }}</div>
                     <div class="text-muted" style="font-size:.78rem">{{ $inv->tenant->name }}</div>
                 </div>
                 <div class="text-end">
                     <div class="fw-bold text-success small">${{ number_format($inv->total_usd,2) }}</div>
-                    <span class="badge bg-{{ $inv->status==='paid'?'success':'danger' }}">{{ ucfirst($inv->status) }}</span>
+                    <span class="badge bg-{{ $inv->status==='paid'?'success':'danger' }}">
+                        {{ ucfirst($inv->status) }}
+                    </span>
                 </div>
             </div>
         </a>
         @empty
         <div class="text-center text-muted py-4">
-            <i class="bi bi-inbox d-block fs-3 mb-2"></i>No invoices yet
+            <i class="bi bi-inbox d-block fs-3 mb-2 opacity-25"></i>No invoices yet
         </div>
         @endforelse
     </div>
 
-    {{-- Desktop: table --}}
+    {{-- Desktop --}}
     <div class="d-none d-md-block table-responsive">
         <table class="table table-hover align-middle mb-0">
-            <thead><tr><th>Month</th><th>Tenant</th><th>Total</th><th>Status</th><th></th></tr></thead>
+            <thead>
+                <tr>
+                    <th>Month</th><th>Tenant</th><th>Total</th><th>Status</th><th></th>
+                </tr>
+            </thead>
             <tbody>
                 @forelse($recentInvoices as $inv)
                 <tr>
                     <td class="fw-semibold">{{ $inv->month }}</td>
                     <td>{{ $inv->tenant->name }}</td>
                     <td class="fw-bold text-success">${{ number_format($inv->total_usd,2) }}</td>
-                    <td><span class="badge bg-{{ $inv->status==='paid'?'success':'danger' }}">{{ ucfirst($inv->status) }}</span></td>
-                    <td><a href="{{ route('invoices.show',$inv) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a></td>
+                    <td>
+                        <span class="badge bg-{{ $inv->status==='paid'?'success':'danger' }}">
+                            {{ ucfirst($inv->status) }}
+                        </span>
+                    </td>
+                    <td>
+                        <a href="{{ route('invoices.show',$inv) }}"
+                           class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                    </td>
                 </tr>
                 @empty
-                <tr><td colspan="5" class="text-center text-muted py-4">No invoices yet</td></tr>
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-4">
+                        <i class="bi bi-inbox d-block fs-3 mb-2 opacity-25"></i>No invoices yet
+                    </td>
+                </tr>
                 @endforelse
             </tbody>
         </table>
     </div>
 </div>
+
 @endsection
