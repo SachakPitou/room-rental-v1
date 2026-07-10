@@ -35,6 +35,18 @@ jobs:
       - name: Install dependencies
         run: composer install --no-progress --prefer-dist --no-interaction
 
+      # ── Added Node & Asset Compilation for testing environment ──
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build frontend assets
+        run: |
+          npm install
+          npm run build
+      # ──────────────────────────────────────────────────────────
+
       - name: Copy .env
         run: cp .env.example .env
 
@@ -106,7 +118,6 @@ jobs:
             composer install --no-dev --optimize-autoloader --no-interaction
             
             # 3. CRITICAL: Manually delete "ghost" caches that cause 500 errors
-            # This works even if artisan is crashing.
             rm -f bootstrap/cache/config.php
             rm -f bootstrap/cache/services.php
             rm -f bootstrap/cache/packages.php
