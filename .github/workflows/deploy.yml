@@ -103,7 +103,6 @@ jobs:
 
       # Built assets exist only on this runner — they never reach A2
       # via `git pull` since public/build is normally gitignored.
-      # Copy them up explicitly before running the remote script.
       - name: Upload built assets to A2
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -122,16 +121,15 @@ jobs:
           username: ${{ secrets.A2_USER }}
           key: ${{ secrets.A2_PRIVATE_KEY }}
           port: ${{ secrets.A2_PORT }}
-          script_stop: true
           script: |
             set -e
             cd ~/room-rental
 
             echo "── Before pull ──"
             git log -1 --oneline
-            git status
 
-            # 1. Pull latest code
+            # 1. Force-sync to latest main (avoids failures from
+            #    server-side cache files showing as local changes)
             git fetch origin main
             git reset --hard origin/main
 
@@ -139,7 +137,7 @@ jobs:
             git log -1 --oneline
 
             # 2. Install dependencies (WITHOUT Pail/Dev tools)
-            composer install --no-dev --optimize-autoloader --no-interaction
+            /opt/cpanel/composer/bin/composer install --no-dev --optimize-autoloader --no-interaction
 
             # 3. CRITICAL: Manually delete "ghost" caches that cause 500 errors
             rm -f bootstrap/cache/config.php
