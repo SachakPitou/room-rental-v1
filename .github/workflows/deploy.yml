@@ -101,6 +101,20 @@ jobs:
           npm ci
           npm run build
 
+      # Built assets exist only on this runner — they never reach A2
+      # via `git pull` since public/build is normally gitignored.
+      # Copy them up explicitly before running the remote script.
+      - name: Upload built assets to A2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.A2_HOST }}
+          username: ${{ secrets.A2_USER }}
+          key: ${{ secrets.A2_PRIVATE_KEY }}
+          port: ${{ secrets.A2_PORT }}
+          source: 'public/build/*'
+          target: '~/room-rental/public/build'
+          strip_components: 2
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
         with:
@@ -108,17 +122,26 @@ jobs:
           username: ${{ secrets.A2_USER }}
           key: ${{ secrets.A2_PRIVATE_KEY }}
           port: ${{ secrets.A2_PORT }}
+          script_stop: true
           script: |
+            set -e
             cd ~/room-rental
 
+            echo "── Before pull ──"
+            git log -1 --oneline
+            git status
+
             # 1. Pull latest code
-            git pull origin main
+            git fetch origin main
+            git reset --hard origin/main
+
+            echo "── After pull ──"
+            git log -1 --oneline
 
             # 2. Install dependencies (WITHOUT Pail/Dev tools)
             composer install --no-dev --optimize-autoloader --no-interaction
 
             # 3. CRITICAL: Manually delete "ghost" caches that cause 500 errors
-            # This works even if artisan is crashing.
             rm -f bootstrap/cache/config.php
             rm -f bootstrap/cache/services.php
             rm -f bootstrap/cache/packages.php
